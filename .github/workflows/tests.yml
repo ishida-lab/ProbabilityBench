@@ -1,0 +1,29 @@
+name: Test ProbabilityBench
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ['3.10', '3.12']
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@c771a70e6277c0a99b617c7a806ffedaca235ff9 # v9.0.0
+        with:
+          version: '0.11.19'
+          python-version: ${{ matrix.python-version }}
+      - name: Install
+        run: uv sync --locked --extra dev --extra plot
+      - name: Test
+        run: uv run --locked --extra dev --extra plot pytest -q
+      - name: Run examples
+        run: |
+          uv run --locked python examples/decision_models.py score --limit 1 --runs outputs/decision_models
